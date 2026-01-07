@@ -20,3 +20,4 @@ Aucune logique d’exécution n’est incluse. Ce dépôt sépare strictement :
 - le paquet (packages),
 - la distribution (métadonnées de packaging uniquement).
 
+

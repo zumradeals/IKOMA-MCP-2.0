@@ -13,9 +13,9 @@ from ..core.types.trace import Trace
 class HealthCheck:
     """Contrat read-only de health."""
 
-    acte_parent: str = "ACTE_III"
     name: str
     primary_evidence: Sequence[EvidencePrimary]
     secondary_evidence: Sequence[EvidenceSecondary]
     traces: Sequence[Trace]
     created_at: datetime
+    acte_parent: str = "ACTE_III"

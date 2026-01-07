@@ -9,7 +9,7 @@ from typing import Mapping, Optional
 class Silence:
     """Absence volontaire d'expression."""
 
-    acte_parent: str = "ACTE_IV"
     reason: str
     created_at: datetime
+    acte_parent: str = "ACTE_IV"
     metadata: Optional[Mapping[str, str]] = field(default_factory=dict)

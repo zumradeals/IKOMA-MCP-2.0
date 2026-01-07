@@ -15,6 +15,6 @@ AuthorityExpression = Union[Order, Refusal, Silence]
 class OrderRegistry:
     """Registre sans exécution, purement déclaratif."""
 
-    acte_parent: str = "ACTE_IV"
     expressions: Sequence[AuthorityExpression]
     created_at: datetime
+    acte_parent: str = "ACTE_IV"

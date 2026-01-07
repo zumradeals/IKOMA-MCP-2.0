@@ -9,9 +9,9 @@ from typing import Mapping, Optional
 class Order:
     """Expression explicite d'une volonté d'action."""
 
-    acte_parent: str = "ACTE_IV"
     identifier: str
     scope: str
     created_at: datetime
+    acte_parent: str = "ACTE_IV"
     consumed_at: Optional[datetime] = None
     metadata: Optional[Mapping[str, str]] = field(default_factory=dict)

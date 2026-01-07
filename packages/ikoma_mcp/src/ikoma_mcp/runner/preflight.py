@@ -13,9 +13,9 @@ from ..core.types.trace import Trace
 class PreflightCheck:
     """Contrat read-only de preflight."""
 
-    acte_parent: str = "ACTE_II"
     name: str
     primary_evidence: Sequence[EvidencePrimary]
     secondary_evidence: Sequence[EvidenceSecondary]
     traces: Sequence[Trace]
     created_at: datetime
+    acte_parent: str = "ACTE_II"

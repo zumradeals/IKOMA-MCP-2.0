@@ -25,4 +25,5 @@ Aucune logique d’exécution n’est incluse. Ce dépôt sépare strictement :
 - BUILD-0 = clos (`docs/BUILD_0_ACTE_ARTEFACTS_TABLE.md`)
 - BUILD-1 = clos (`docs/BUILD_1_SKELETON_DU_MOTEUR.md`)
 - BUILD-2B = clos (observabilité read-only)
-- BUILD-3 = Acte IV (Ordres/Refus/Silences) contractuel seulement
+- BUILD-3 = clos (Acte IV contractuel)
+- BUILD-4 = Preflight and Execution Contracts (Acte IV)

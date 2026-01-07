@@ -26,3 +26,6 @@ class DeployResult:
     order: Order
     traces: Sequence[Trace]
     facts: Sequence[Fact]
+
+
+ApplyResult = DeployResult

@@ -1,11 +1,13 @@
-"""Interfaces du Gateway (exposition réseau)."""
+"""Interfaces du Gateway (exposition read-only)."""
 
 from typing import Protocol
 
+from .exposure import GatewayExposure
+
 
 class GatewayInterface(Protocol):
-    """Contrat d'exposition sans décision."""
+    """Contrat d'exposition sans action."""
 
-    def expose(self, target: str) -> None:
-        """Expose un accès selon un ordre reçu."""
+    def snapshot(self) -> GatewayExposure:
+        """Expose un snapshot strictement read-only."""
         ...

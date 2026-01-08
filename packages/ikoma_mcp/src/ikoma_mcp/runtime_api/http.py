@@ -25,6 +25,22 @@ class RuntimeApiHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - enforced by BaseHTTPRequestHandler
         path = urlparse(self.path).path
+        if path == "/" or path == "":
+            payload = {
+                "status": "ok",
+                "service": "ikoma-mcp-gateway",
+                "message": "IKOMA MCP Gateway is running",
+            }
+            self._send_json(payload)
+            return
+        if path == "/health":
+            payload = {
+                "status": "ok",
+                "service": "gateway",
+                "version": "0.1.0",  # Hardcoded for now as per pyproject.toml
+            }
+            self._send_json(payload)
+            return
         if path == "/v1/runtime/status":
             payload = serialize_runtime_report(self.provider.get_runtime_status())
             self._send_json(payload)

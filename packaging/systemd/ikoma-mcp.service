@@ -1,0 +1,12 @@
+[Unit]
+Description=IKOMA MCP Meta Service
+Wants=ikoma-mcp-runner.service ikoma-mcp-deployer.service ikoma-mcp-gateway.service
+After=ikoma-mcp-runner.service ikoma-mcp-deployer.service ikoma-mcp-gateway.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

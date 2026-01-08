@@ -1,0 +1,15 @@
+[Unit]
+Description=IKOMA MCP Gateway (passive)
+After=network.target
+
+[Service]
+Type=oneshot
+User=ikoma
+Group=ikoma
+WorkingDirectory=/opt/ikoma/code
+EnvironmentFile=-/etc/ikoma/gateway.env
+ExecStart=/opt/ikoma/venv/bin/python -c "import ikoma_mcp"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

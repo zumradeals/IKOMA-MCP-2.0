@@ -41,6 +41,13 @@ class RuntimeApiHandler(BaseHTTPRequestHandler):
             }
             self._send_json(payload)
             return
+        if path == "/api/capabilities":
+            payload = {
+                "capabilities": [],
+                "version": "0.1.0",
+            }
+            self._send_json(payload)
+            return
         if path == "/v1/runtime/status":
             payload = serialize_runtime_report(self.provider.get_runtime_status())
             self._send_json(payload)

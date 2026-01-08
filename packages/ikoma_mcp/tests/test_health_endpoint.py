@@ -38,6 +38,14 @@ def test_health():
         assert r2.status == 200
         assert data2["status"] == "ok"
 
+        # Test /api/capabilities
+        conn.request("GET", "/api/capabilities")
+        r3 = conn.getresponse()
+        data3 = json.loads(r3.read().decode())
+        print(f"GET /api/capabilities: {r3.status} {data3}")
+        assert r3.status == 200
+        assert "capabilities" in data3
+
         print("Tests passed successfully!")
     finally:
         p.terminate()

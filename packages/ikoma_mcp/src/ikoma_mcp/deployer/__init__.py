@@ -2,7 +2,7 @@
 
 from .config import DeployerConfig
 from .result import ApplyResult, DeployOutcome, DeployResult
-from .runtime import DeployerRuntime, validate_order_contract
+from .runtime_impl import DeployerRuntime, validate_order_contract
 
 __all__ = [
     "ApplyResult",

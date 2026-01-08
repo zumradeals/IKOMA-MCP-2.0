@@ -1,5 +1,6 @@
-"""Runner Runtime passif (BUILD-6)."""
+"""Runner Runtime (BUILD-6)."""
 
+from ..runtime_impl import RuntimeRunner, RuntimeTick
 from .contracts import RunnerRuntimeInput, RunnerRuntimeReport
 from .decision import (
     RUNNER_REASON_REGISTRY,
@@ -16,5 +17,7 @@ __all__ = [
     "RUNNER_REASON_REGISTRY",
     "RunnerRuntimeInput",
     "RunnerRuntimeReport",
+    "RuntimeRunner",
+    "RuntimeTick",
     "build_runner_cycle",
 ]

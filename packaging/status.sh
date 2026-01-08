@@ -28,6 +28,9 @@ check_service() {
   if systemctl list-unit-files "${svc}.service" >/dev/null 2>&1; then
     if systemctl is-active --quiet "${svc}.service"; then
       log "SERVICE: ${svc} is active"
+      if [[ "${svc}" == "ikoma-mcp-gateway" ]]; then
+        check_gateway_health
+      fi
     else
       log "SERVICE: ${svc} is inactive"
     fi
@@ -38,6 +41,33 @@ check_service() {
     fi
   else
     log "SERVICE: ${svc} unit not installed"
+  fi
+}
+
+check_gateway_health() {
+  local host="127.0.0.1"
+  local port="9000"
+  # Try to get port from env if possible, but default to 9000
+  if [[ -f "/etc/ikoma/gateway.env" ]]; then
+    local env_port
+    env_port=$(grep "IKOMA_GATEWAY_PORT=" /etc/ikoma/gateway.env | cut -d'=' -f2 || true)
+    if [[ -n "${env_port}" ]]; then
+      port="${env_port}"
+    fi
+  fi
+
+  if command -v curl >/dev/null 2>&1; then
+    local response
+    local http_code
+    response=$(curl -s -w "%{http_code}" "http://${host}:${port}/health" || echo "000")
+    http_code="${response: -3}"
+    if [[ "${http_code}" == "200" ]]; then
+      log "HEALTH: gateway /health is OK (200)"
+    else
+      log "HEALTH: gateway /health is FAIL (code: ${http_code})"
+    fi
+  else
+    log "HEALTH: curl not found, cannot check gateway health"
   fi
 }
 

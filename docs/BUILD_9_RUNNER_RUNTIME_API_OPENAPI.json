@@ -1,0 +1,332 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "IKOMA MCP 2.0 Runner Runtime API",
+    "version": "BUILD-9",
+    "description": "Read-only runtime reports derived from existing contracts."
+  },
+  "paths": {
+    "/v1/runtime/status": {
+      "get": {
+        "summary": "Runtime status report",
+        "operationId": "getRuntimeStatus",
+        "responses": {
+          "200": {
+            "description": "RuntimeReport",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/RuntimeReport"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/runner/cycle": {
+      "get": {
+        "summary": "Runner cycle report",
+        "operationId": "getRunnerCycle",
+        "responses": {
+          "200": {
+            "description": "RunnerRuntimeReport",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/RunnerRuntimeReport"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/deployer/last": {
+      "get": {
+        "summary": "Last deployer execution",
+        "operationId": "getDeployerLast",
+        "responses": {
+          "200": {
+            "description": "ExecutionResult",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ExecutionResult"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/gateway/exposure": {
+      "get": {
+        "summary": "Gateway exposure report",
+        "operationId": "getGatewayExposure",
+        "responses": {
+          "200": {
+            "description": "GatewayReport",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/GatewayReport"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/openapi.json": {
+      "get": {
+        "summary": "OpenAPI schema",
+        "operationId": "getOpenApiSchema",
+        "responses": {
+          "200": {
+            "description": "OpenAPI schema document",
+            "content": {
+              "application/json": {
+                "schema": {"type": "object"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RuntimeReport": {
+        "type": "object",
+        "required": ["context", "preflight_reports", "health_reports", "expression", "traces", "created_at", "acte_parent"],
+        "properties": {
+          "context": {"$ref": "#/components/schemas/RuntimeContext"},
+          "preflight_reports": {"type": "array", "items": {"$ref": "#/components/schemas/PreflightReport"}},
+          "health_reports": {"type": "array", "items": {"$ref": "#/components/schemas/HealthReport"}},
+          "expression": {"$ref": "#/components/schemas/AuthorityExpression"},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}},
+          "created_at": {"type": "string", "format": "date-time"},
+          "acte_parent": {"type": "string"}
+        }
+      },
+      "RunnerRuntimeReport": {
+        "type": "object",
+        "required": ["context", "decision", "expression", "traces", "preflight_reports", "health_reports", "created_at", "acte_parent"],
+        "properties": {
+          "context": {"$ref": "#/components/schemas/RuntimeContext"},
+          "decision": {"$ref": "#/components/schemas/RunnerDecision"},
+          "expression": {"$ref": "#/components/schemas/AuthorityExpression"},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}},
+          "preflight_reports": {"type": "array", "items": {"$ref": "#/components/schemas/PreflightReport"}},
+          "health_reports": {"type": "array", "items": {"$ref": "#/components/schemas/HealthReport"}},
+          "created_at": {"type": "string", "format": "date-time"},
+          "acte_parent": {"type": "string"}
+        }
+      },
+      "ExecutionResult": {
+        "type": "object",
+        "required": ["status", "deploy_state", "order", "facts", "traces", "raw_result", "raw_error", "started_at", "finished_at"],
+        "properties": {
+          "status": {"type": "string", "enum": ["APPLIED", "FAILED", "UNKNOWN"]},
+          "deploy_state": {"type": "string", "enum": ["APPLIED", "REJECTED", "FAILED", "UNKNOWN"]},
+          "order": {"$ref": "#/components/schemas/Order"},
+          "facts": {"type": "array", "items": {"$ref": "#/components/schemas/Fact"}},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}},
+          "raw_result": {"type": "string", "nullable": true},
+          "raw_error": {"type": "string", "nullable": true},
+          "started_at": {"type": "string", "format": "date-time"},
+          "finished_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "GatewayReport": {
+        "type": "object",
+        "required": ["context", "request", "status", "expression", "facts", "traces", "created_at", "acte_parent"],
+        "properties": {
+          "context": {"$ref": "#/components/schemas/GatewayContext"},
+          "request": {"$ref": "#/components/schemas/GatewayRequest"},
+          "status": {"type": "string", "enum": ["confirmed", "insufficient_evidence", "incoherent"]},
+          "expression": {"$ref": "#/components/schemas/AuthorityExpression"},
+          "facts": {"type": "array", "items": {"$ref": "#/components/schemas/Fact"}},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}},
+          "created_at": {"type": "string", "format": "date-time"},
+          "acte_parent": {"type": "string"}
+        }
+      },
+      "RuntimeContext": {
+        "type": "object",
+        "required": ["state", "cycle", "facts", "evidence", "traces"],
+        "properties": {
+          "state": {"type": "string", "enum": ["INIT", "RUNNING", "DEGRADED", "BLOCKED", "FAILED", "STOPPED"]},
+          "cycle": {"$ref": "#/components/schemas/RuntimeCycle"},
+          "facts": {"type": "array", "items": {"$ref": "#/components/schemas/Fact"}},
+          "evidence": {"type": "array", "items": {"$ref": "#/components/schemas/EvidenceSet"}},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}}
+        }
+      },
+      "RuntimeCycle": {
+        "type": "object",
+        "required": ["clock", "opened_at", "closed_at"],
+        "properties": {
+          "clock": {"$ref": "#/components/schemas/RuntimeClock"},
+          "opened_at": {"type": "string", "format": "date-time"},
+          "closed_at": {"type": "string", "format": "date-time", "nullable": true}
+        }
+      },
+      "RuntimeClock": {
+        "type": "object",
+        "required": ["tick", "instant", "cycle"],
+        "properties": {
+          "tick": {"type": "integer"},
+          "instant": {"type": "integer"},
+          "cycle": {"type": "integer"}
+        }
+      },
+      "PreflightReport": {
+        "type": "object",
+        "required": ["facts", "primary_evidence", "secondary_evidence", "traces", "status", "blocking", "created_at"],
+        "properties": {
+          "facts": {"type": "array", "items": {"$ref": "#/components/schemas/Fact"}},
+          "primary_evidence": {"type": "array", "items": {"$ref": "#/components/schemas/EvidencePrimary"}},
+          "secondary_evidence": {"type": "array", "items": {"$ref": "#/components/schemas/EvidenceSecondary"}},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}},
+          "status": {"type": "string", "enum": ["insufficient_evidence", "incoherent_evidence", "conditions_satisfied", "conditions_unsatisfied"]},
+          "blocking": {"type": "boolean"},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "HealthReport": {
+        "type": "object",
+        "required": ["facts", "primary_evidence", "secondary_evidence", "traces", "observation", "created_at"],
+        "properties": {
+          "facts": {"type": "array", "items": {"$ref": "#/components/schemas/Fact"}},
+          "primary_evidence": {"type": "array", "items": {"$ref": "#/components/schemas/EvidencePrimary"}},
+          "secondary_evidence": {"type": "array", "items": {"$ref": "#/components/schemas/EvidenceSecondary"}},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}},
+          "observation": {"type": "string", "enum": ["observed", "unobserved", "unknown"]},
+          "created_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "RunnerDecision": {
+        "type": "object",
+        "required": ["summary", "reasons", "acte_parent"],
+        "properties": {
+          "summary": {"type": "string"},
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["preuve manquante", "incohérence critique", "hors autorité", "transition autorisée", "observation confirmée"]
+            }
+          },
+          "acte_parent": {"type": "string"}
+        }
+      },
+      "GatewayContext": {
+        "type": "object",
+        "required": ["target", "exposure_state", "proof_present", "facts", "traces"],
+        "properties": {
+          "target": {"type": "string"},
+          "exposure_state": {"type": "string", "enum": ["OPEN", "CLOSED", "UNKNOWN"]},
+          "proof_present": {"type": "boolean"},
+          "facts": {"type": "array", "items": {"$ref": "#/components/schemas/Fact"}},
+          "traces": {"type": "array", "items": {"$ref": "#/components/schemas/Trace"}}
+        }
+      },
+      "GatewayRequest": {
+        "type": "object",
+        "required": ["order", "context", "metadata"],
+        "properties": {
+          "order": {"$ref": "#/components/schemas/Order", "nullable": true},
+          "context": {"$ref": "#/components/schemas/GatewayContext"},
+          "metadata": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": ["identifier", "scope", "created_at", "acte_parent", "consumed_at", "metadata"],
+        "properties": {
+          "identifier": {"type": "string"},
+          "scope": {"type": "string"},
+          "created_at": {"type": "string", "format": "date-time"},
+          "acte_parent": {"type": "string"},
+          "consumed_at": {"type": "string", "format": "date-time", "nullable": true},
+          "metadata": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      },
+      "AuthorityExpression": {
+        "oneOf": [
+          {"$ref": "#/components/schemas/OrderExpression"},
+          {"$ref": "#/components/schemas/RefusalExpression"},
+          {"$ref": "#/components/schemas/SilenceExpression"}
+        ]
+      },
+      "OrderExpression": {
+        "type": "object",
+        "required": ["type", "identifier", "scope", "created_at", "acte_parent", "consumed_at", "metadata"],
+        "properties": {
+          "type": {"type": "string", "enum": ["order"]},
+          "identifier": {"type": "string"},
+          "scope": {"type": "string"},
+          "created_at": {"type": "string", "format": "date-time"},
+          "acte_parent": {"type": "string"},
+          "consumed_at": {"type": "string", "format": "date-time", "nullable": true},
+          "metadata": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      },
+      "RefusalExpression": {
+        "type": "object",
+        "required": ["type", "reason", "created_at", "acte_parent", "metadata"],
+        "properties": {
+          "type": {"type": "string", "enum": ["refusal"]},
+          "reason": {"type": "string"},
+          "created_at": {"type": "string", "format": "date-time"},
+          "acte_parent": {"type": "string"},
+          "metadata": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      },
+      "SilenceExpression": {
+        "type": "object",
+        "required": ["type", "reason", "created_at", "acte_parent", "metadata"],
+        "properties": {
+          "type": {"type": "string", "enum": ["silence"]},
+          "reason": {"type": "string"},
+          "created_at": {"type": "string", "format": "date-time"},
+          "acte_parent": {"type": "string"},
+          "metadata": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      },
+      "Fact": {
+        "type": "object",
+        "required": ["description", "attributes"],
+        "properties": {
+          "description": {"type": "string"},
+          "attributes": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      },
+      "Trace": {
+        "type": "object",
+        "required": ["timestamp", "actor", "metadata"],
+        "properties": {
+          "timestamp": {"type": "string", "format": "date-time"},
+          "actor": {"type": "string"},
+          "metadata": {"type": "object", "additionalProperties": {"type": "string"}}
+        }
+      },
+      "EvidencePrimary": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": {"type": "string"}
+        }
+      },
+      "EvidenceSecondary": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": {"type": "string"}
+        }
+      },
+      "EvidenceSet": {
+        "type": "object",
+        "required": ["primary", "secondary"],
+        "properties": {
+          "primary": {"$ref": "#/components/schemas/EvidencePrimary"},
+          "secondary": {"type": "array", "items": {"$ref": "#/components/schemas/EvidenceSecondary"}}
+        }
+      }
+    }
+  }
+}

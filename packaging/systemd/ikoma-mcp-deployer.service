@@ -3,13 +3,13 @@ Description=IKOMA MCP Deployer (passive)
 After=network.target
 
 [Service]
-Type=oneshot
+Type=simple
+Restart=always
 User=ikoma
 Group=ikoma
 WorkingDirectory=/opt/ikoma/code
-EnvironmentFile=-/etc/ikoma/deployer.env
-ExecStart=/opt/ikoma/venv/bin/python -c "import ikoma_mcp"
-RemainAfterExit=yes
+EnvironmentFile=/etc/ikoma/*.env
+ExecStart=/opt/ikoma/venv/bin/python -m ikoma_mcp.deployer.main
 
 [Install]
 WantedBy=multi-user.target

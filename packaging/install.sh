@@ -115,19 +115,37 @@ install_systemd_units() {
   done
 
   for svc in ikoma-mcp-runner ikoma-mcp-deployer ikoma-mcp-gateway; do
-    local dropin_dir="/etc/systemd/system/${svc}.service.d"
-    install -d -m 755 -o root -g root "${dropin_dir}"
-    cat <<EOF_DROPIN > "${dropin_dir}/10-env.conf"
-[Service]
-EnvironmentFile=${ETC_DIR}/$(echo "${svc}" | sed 's/ikoma-mcp-//').env
-EOF_DROPIN
+    rm -rf "/etc/systemd/system/${svc}.service.d"
   done
 
   systemctl daemon-reload
 }
 
+enable_services() {
+  local enable_now="$1"
+  local services=(ikoma-mcp-runner ikoma-mcp-deployer ikoma-mcp-gateway ikoma-mcp)
+  if [[ "${enable_now}" == "true" ]]; then
+    log "Enabling and starting services"
+    systemctl enable --now "${services[@]/%/.service}"
+  else
+    log "Enabling services without starting (--no-start)"
+    systemctl enable "${services[@]/%/.service}"
+  fi
+}
+
 main() {
   require_root
+  local start_services="true"
+  for arg in "$@"; do
+    case "${arg}" in
+      --no-start)
+        start_services="false"
+        ;;
+      *)
+        die "Unknown argument: ${arg}"
+        ;;
+    esac
+  done
   install -d -m 750 -o root -g root "${LOG_DIR}"
   setup_logging
   log "Starting IKOMA MCP 2.0 PACK-2 installation"
@@ -138,6 +156,7 @@ main() {
   install_venv
   install_templates
   install_systemd_units
+  enable_services "${start_services}"
   log "Installation complete"
   log "Installed code at ${CODE_DIR}"
   log "Virtualenv at ${VENV_DIR}"

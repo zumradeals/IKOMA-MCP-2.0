@@ -7,6 +7,7 @@ VENV_DIR="${BASE_DIR}/venv"
 ETC_DIR="/etc/ikoma"
 LIB_DIR="/var/lib/ikoma"
 LOG_DIR="/var/log/ikoma"
+RUNNER_CYCLE_FILE="/var/lib/ikoma/runner_last_cycle_id"
 
 log() {
   printf '[%s] %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$*"
@@ -54,6 +55,30 @@ check_version() {
   fi
 }
 
+show_service_logs() {
+  local svc="$1"
+  if ! command -v journalctl >/dev/null 2>&1; then
+    log "LOGS: journalctl not available"
+    return
+  fi
+  if systemctl list-unit-files "${svc}.service" >/dev/null 2>&1; then
+    log "LOGS: last entries for ${svc}"
+    journalctl -u "${svc}.service" -n 20 --no-pager || true
+  fi
+}
+
+show_runner_cycle() {
+  if [[ -f "${RUNNER_CYCLE_FILE}" ]]; then
+    local cycle_id
+    cycle_id=$(cat "${RUNNER_CYCLE_FILE}" 2>/dev/null || true)
+    if [[ -n "${cycle_id}" ]]; then
+      log "RUNNER: last cycle id ${cycle_id}"
+      return
+    fi
+  fi
+  log "RUNNER: last cycle id unavailable"
+}
+
 main() {
   log "IKOMA MCP 2.0 PACK-2 status"
   check_path "Base directory" "${BASE_DIR}"
@@ -67,6 +92,11 @@ main() {
   check_service "ikoma-mcp-deployer"
   check_service "ikoma-mcp-gateway"
   check_service "ikoma-mcp"
+  show_runner_cycle
+  show_service_logs "ikoma-mcp-runner"
+  show_service_logs "ikoma-mcp-deployer"
+  show_service_logs "ikoma-mcp-gateway"
+  show_service_logs "ikoma-mcp"
   log "Status complete"
 }
 

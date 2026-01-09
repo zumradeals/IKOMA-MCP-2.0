@@ -67,23 +67,24 @@ install_packages() {
 install_code() {
   log "Installing/Updating code to ${CODE_DIR}"
   
+  # Ensure parent directory exists and is owned by ikoma for the clone
+  mkdir -p "${BASE_DIR}"
+  chown "${IKOMA_USER}:${IKOMA_GROUP}" "${BASE_DIR}"
+
   if [[ ! -d "${CODE_DIR}/.git" ]]; then
-    log "Cloning repository from ${REPO_URL} (branch: ${CURRENT_BRANCH})"
+    log "Cloning repository from ${REPO_URL} (branch: ${CURRENT_BRANCH}) as ${IKOMA_USER}"
     rm -rf "${CODE_DIR}"
-    git clone --branch "${CURRENT_BRANCH}" "${REPO_URL}" "${CODE_DIR}"
+    sudo -u "${IKOMA_USER}" git clone --branch "${CURRENT_BRANCH}" "${REPO_URL}" "${CODE_DIR}"
   else
-    log "Updating existing repository"
-    # Temporarily allow root to access the repo for update
-    git config --global --add safe.directory "${CODE_DIR}"
-    git -C "${CODE_DIR}" fetch origin
-    git -C "${CODE_DIR}" reset --hard "origin/${CURRENT_BRANCH}"
+    log "Updating existing repository as ${IKOMA_USER}"
+    # Ensure service user can access the directory
+    sudo -u "${IKOMA_USER}" git config --global --add safe.directory "${CODE_DIR}"
+    sudo -u "${IKOMA_USER}" git -C "${CODE_DIR}" fetch origin
+    sudo -u "${IKOMA_USER}" git -C "${CODE_DIR}" reset --hard "origin/${CURRENT_BRANCH}"
   fi
   
-  # Fix ownership immediately
+  # Final ownership check
   chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${CODE_DIR}"
-  
-  # Git safety for the service user
-  sudo -u "${IKOMA_USER}" git config --global --add safe.directory "${CODE_DIR}"
 }
 
 install_venv() {

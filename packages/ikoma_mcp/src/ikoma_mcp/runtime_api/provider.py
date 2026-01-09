@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime
 from pathlib import Path
@@ -10,6 +11,8 @@ from typing import Callable, Protocol
 from ..core.orders.order import Order
 from ..core.orders.silence import Silence
 from ..core.state.deploy import DeployState
+from ..core.types.fact import Fact
+from ..core.types.trace import Trace
 from ..gateway.runtime.context import GatewayContext
 from ..gateway.runtime.report import GatewayReport, build_gateway_report
 from ..gateway.runtime.request import GatewayRequest
@@ -140,6 +143,7 @@ class FileBasedRuntimeApiProvider(DefaultRuntimeApiProvider):
         super().__init__(now=now)
         self._lib_dir = Path(lib_dir)
         self._runner_cycle_file = self._lib_dir / "runner_last_cycle_id"
+        self._deployer_last_file = self._lib_dir / "deployer_last.json"
 
     def get_runtime_status(self) -> RuntimeReport:
         report = super().get_runtime_status()
@@ -193,6 +197,52 @@ class FileBasedRuntimeApiProvider(DefaultRuntimeApiProvider):
                 created_at=timestamp,
             )
         return report
+
+    def get_deployer_last(self) -> ExecutionResult:
+        if not self._deployer_last_file.exists():
+            return super().get_deployer_last()
+        
+        try:
+            data = json.loads(self._deployer_last_file.read_text(encoding="utf-8"))
+            
+            # Reconstruct ExecutionResult from JSON
+            order_data = data["order"]
+            order = Order(
+                identifier=order_data["identifier"],
+                scope=order_data["scope"],
+                created_at=datetime.fromisoformat(order_data["created_at"]),
+                acte_parent=order_data.get("acte_parent", "ACTE_IV"),
+                consumed_at=datetime.fromisoformat(order_data["consumed_at"]) if order_data.get("consumed_at") else None,
+                metadata=order_data.get("metadata", {}),
+            )
+            
+            facts = [
+                Fact(description=f["description"], attributes=f["attributes"])
+                for f in data.get("facts", [])
+            ]
+            
+            traces = [
+                Trace(
+                    timestamp=datetime.fromisoformat(t["timestamp"]),
+                    actor=t["actor"],
+                    metadata=t["metadata"]
+                )
+                for t in data.get("traces", [])
+            ]
+            
+            return ExecutionResult(
+                status=ExecutionStatus(data["status"]),
+                deploy_state=DeployState(data["deploy_state"]),
+                order=order,
+                facts=facts,
+                traces=traces,
+                raw_result=data.get("raw_result"),
+                raw_error=data.get("raw_error"),
+                started_at=datetime.fromisoformat(data["started_at"]),
+                finished_at=datetime.fromisoformat(data["finished_at"]),
+            )
+        except Exception:
+            return super().get_deployer_last()
 
     def _read_cycle_id(self) -> int:
         if not self._runner_cycle_file.exists():

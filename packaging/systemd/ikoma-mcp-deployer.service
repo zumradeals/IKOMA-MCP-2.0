@@ -8,7 +8,7 @@ Restart=always
 User=ikoma
 Group=ikoma
 WorkingDirectory=/opt/ikoma/code
-EnvironmentFile=/etc/ikoma/*.env
+EnvironmentFile=/etc/ikoma/deployer.env
 ExecStart=/opt/ikoma/venv/bin/python -m ikoma_mcp.deployer.main
 
 [Install]

@@ -53,6 +53,27 @@ ensure_dirs() {
   install -d -m 770 -o "${IKOMA_USER}" -g "${IKOMA_GROUP}" "${LIB_DIR}/orders/inbox"
   install -d -m 770 -o "${IKOMA_USER}" -g "${IKOMA_GROUP}" "${LIB_DIR}/orders/consumed"
   install -d -m 770 -o "${IKOMA_USER}" -g "${IKOMA_GROUP}" "${LIB_DIR}/orders/rejected"
+
+  local example_order="${LIB_DIR}/orders/example_order.json"
+  if [[ ! -f "${example_order}" ]]; then
+    local created_at
+    created_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+    cat > "${example_order}" <<EOF
+{
+  "identifier": "order-example-001",
+  "scope": "production",
+  "created_at": "${created_at}",
+  "acte_parent": "ACTE_IV",
+  "metadata": {
+    "action": "deploy.up",
+    "target": "gateway",
+    "release_ref": "v1.0.0"
+  }
+}
+EOF
+    chown "${IKOMA_USER}:${IKOMA_GROUP}" "${example_order}"
+    chmod 640 "${example_order}"
+  fi
 }
 
 install_packages() {
@@ -73,7 +94,7 @@ install_code() {
   cp -R "${REPO_ROOT}/." "${CODE_DIR}/"
   
   # Fix ownership immediately
-  chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${CODE_DIR}"
+  chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${BASE_DIR}"
   
   # Git safety - only if it's a git repo
   if [ -d "${CODE_DIR}/.git" ]; then
@@ -86,6 +107,7 @@ install_venv() {
   python3 -m venv "${VENV_DIR}"
   "${VENV_DIR}/bin/pip" install --upgrade pip
   "${VENV_DIR}/bin/pip" install -e "${CODE_DIR}/packages/ikoma_mcp"
+  chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${BASE_DIR}"
 }
 
 install_config() {

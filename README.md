@@ -14,6 +14,38 @@ sudo ./ops/install.sh
 
 Cette commande installe l'utilisateur `ikoma`, l'environnement virtuel Python, les services systemd et configure le système d'ordres fichiers.
 
+## Ordres fichiers (JSON)
+
+Les ordres déposés dans `/var/lib/ikoma/orders/inbox/` doivent respecter ce schéma :
+
+- `identifier` (string, requis)
+- `scope` (string, requis)
+- `created_at` (string ISO-8601, optionnel, défaut = maintenant UTC)
+- `acte_parent` (string, optionnel, défaut = `ACTE_IV`)
+- `metadata` (objet, optionnel, défaut = `{}`) avec :
+  - `action` : `deploy.up`, `deploy.down`, `deploy.restart`
+  - `target` : composant cible (ex: `gateway`)
+  - `release_ref` : référence de release (ex: `v1.0.0`)
+
+Exemple d'ordre :
+
+```json
+{
+  "identifier": "order-2024-0001",
+  "scope": "production",
+  "created_at": "2024-01-01T00:00:00Z",
+  "acte_parent": "ACTE_IV",
+  "metadata": {
+    "action": "deploy.up",
+    "target": "gateway",
+    "release_ref": "v1.0.0"
+  }
+}
+```
+
+Les répertoires d'ordres sont créés par `ops/install.sh`, ainsi qu'un exemple dans
+`/var/lib/ikoma/orders/example_order.json`.
+
 ## Structure du dépôt
 
 - `docs/` : doctrine et actes (Loi du Moteur, RAE, documents conceptuels).

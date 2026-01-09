@@ -1,5 +1,5 @@
 [Unit]
-Description=IKOMA MCP Deployer (passive)
+Description=IKOMA MCP Deployer (worker)
 After=network.target
 
 [Service]

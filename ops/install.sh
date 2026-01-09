@@ -68,11 +68,17 @@ install_code() {
   fi
 
   log "Installing code to ${CODE_DIR}"
-  cp -a "${REPO_ROOT}/." "${CODE_DIR}/"
+  # Use rsync or cp with explicit root context to avoid permission issues from source parent dirs
+  mkdir -p "${CODE_DIR}"
+  cp -R "${REPO_ROOT}/." "${CODE_DIR}/"
+  
+  # Fix ownership immediately
   chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${CODE_DIR}"
   
-  # Git safety
-  sudo -u "${IKOMA_USER}" git config --global --add safe.directory "${CODE_DIR}"
+  # Git safety - only if it's a git repo
+  if [ -d "${CODE_DIR}/.git" ]; then
+    sudo -u "${IKOMA_USER}" git config --global --add safe.directory "${CODE_DIR}"
+  fi
 }
 
 install_venv() {

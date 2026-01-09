@@ -73,7 +73,7 @@ install_code() {
   cp -R "${REPO_ROOT}/." "${CODE_DIR}/"
   
   # Fix ownership immediately
-  chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${CODE_DIR}"
+  chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${BASE_DIR}"
   
   # Git safety - only if it's a git repo
   if [ -d "${CODE_DIR}/.git" ]; then
@@ -86,6 +86,7 @@ install_venv() {
   python3 -m venv "${VENV_DIR}"
   "${VENV_DIR}/bin/pip" install --upgrade pip
   "${VENV_DIR}/bin/pip" install -e "${CODE_DIR}/packages/ikoma_mcp"
+  chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${BASE_DIR}"
 }
 
 install_config() {

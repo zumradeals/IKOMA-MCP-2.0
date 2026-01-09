@@ -114,12 +114,16 @@ install_templates() {
 
 install_systemd_units() {
   log "Installing systemd unit files"
+  local systemd_dir="/etc/systemd/system"
   for unit in ikoma-mcp-runner.service ikoma-mcp-deployer.service ikoma-mcp-gateway.service ikoma-mcp.service; do
-    install -m 644 -o root -g root "${SCRIPT_DIR}/systemd/${unit}" "/etc/systemd/system/${unit}"
+    install -m 644 -o root -g root "${SCRIPT_DIR}/systemd/${unit}" "${systemd_dir}/${unit}"
+    # Dynamic path replacement in unit files if needed
+    sed -i "s|/opt/ikoma|${BASE_DIR}|g" "${systemd_dir}/${unit}"
+    sed -i "s|/etc/ikoma|${ETC_DIR}|g" "${systemd_dir}/${unit}"
   done
 
   for svc in ikoma-mcp-runner ikoma-mcp-deployer ikoma-mcp-gateway; do
-    rm -rf "/etc/systemd/system/${svc}.service.d"
+    rm -rf "${systemd_dir}/${svc}.service.d"
   done
 
   systemctl daemon-reload

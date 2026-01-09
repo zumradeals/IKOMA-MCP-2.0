@@ -2,11 +2,24 @@
 
 Référentiel de gouvernance et de conception pour IKOMA MCP 2.0.
 
+## VPS vierge → IKOMA MCP prêt
+
+Pour installer IKOMA MCP 2.0 sur un VPS Ubuntu 22.04 vierge :
+
+```bash
+git clone https://github.com/zumradeals/IKOMA-MCP-2.0.git
+cd IKOMA-MCP-2.0
+sudo ./ops/install.sh
+```
+
+Cette commande installe l'utilisateur `ikoma`, l'environnement virtuel Python, les services systemd et configure le système d'ordres fichiers.
+
 ## Structure du dépôt
 
 - `docs/` : doctrine et actes (Loi du Moteur, RAE, documents conceptuels).
 - `packages/` : paquets importables, dont le moteur conceptuel.
 - `fixtures/` : exemples non-exécutifs (manifests, samples).
+- `ops/` : scripts d'exploitation et d'installation.
 
 ## Comment lire ce dépôt (90 secondes)
 

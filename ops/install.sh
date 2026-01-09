@@ -3,9 +3,7 @@ set -euo pipefail
 
 # IKOMA MCP 2.0 - Zero-Touch Installation Script
 # Target: Ubuntu 22.04 VPS
-
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-REPO_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
+# This script is designed to be independent of the launch directory.
 
 IKOMA_USER="ikoma"
 IKOMA_GROUP="ikoma"
@@ -15,6 +13,11 @@ VENV_DIR="${BASE_DIR}/venv"
 ETC_DIR="/etc/ikoma"
 LIB_DIR="/var/lib/ikoma"
 LOG_DIR="/var/log/ikoma"
+
+# Source of truth for the code
+REPO_URL="https://github.com/zumradeals/IKOMA-MCP-2.0.git"
+# Use the current branch if we are in a git repo, otherwise default to main
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
 
 log() {
   printf '[%s] %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$*"
@@ -62,28 +65,32 @@ install_packages() {
 }
 
 install_code() {
-  if [[ -d "${CODE_DIR}" ]]; then
-    log "Updating code at ${CODE_DIR}"
+  log "Installing/Updating code to ${CODE_DIR}"
+  
+  if [[ ! -d "${CODE_DIR}/.git" ]]; then
+    log "Cloning repository from ${REPO_URL} (branch: ${CURRENT_BRANCH})"
     rm -rf "${CODE_DIR}"
+    git clone --branch "${CURRENT_BRANCH}" "${REPO_URL}" "${CODE_DIR}"
+  else
+    log "Updating existing repository"
+    # Temporarily allow root to access the repo for update
+    git config --global --add safe.directory "${CODE_DIR}"
+    git -C "${CODE_DIR}" fetch origin
+    git -C "${CODE_DIR}" reset --hard "origin/${CURRENT_BRANCH}"
   fi
-
-  log "Installing code to ${CODE_DIR}"
-  # Use rsync or cp with explicit root context to avoid permission issues from source parent dirs
-  mkdir -p "${CODE_DIR}"
-  cp -R "${REPO_ROOT}/." "${CODE_DIR}/"
   
   # Fix ownership immediately
   chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${CODE_DIR}"
   
-  # Git safety - only if it's a git repo
-  if [ -d "${CODE_DIR}/.git" ]; then
-    sudo -u "${IKOMA_USER}" git config --global --add safe.directory "${CODE_DIR}"
-  fi
+  # Git safety for the service user
+  sudo -u "${IKOMA_USER}" git config --global --add safe.directory "${CODE_DIR}"
 }
 
 install_venv() {
   log "Creating virtual environment at ${VENV_DIR}"
-  python3 -m venv "${VENV_DIR}"
+  if [[ ! -d "${VENV_DIR}" ]]; then
+    python3 -m venv "${VENV_DIR}"
+  fi
   "${VENV_DIR}/bin/pip" install --upgrade pip
   "${VENV_DIR}/bin/pip" install -e "${CODE_DIR}/packages/ikoma_mcp"
 }
@@ -134,7 +141,7 @@ health_check() {
 
 main() {
   require_root
-  log "Starting IKOMA MCP 2.0 Final Installation"
+  log "Starting IKOMA MCP 2.0 Final Installation (Zero-Touch)"
   install_packages
   ensure_user_group
   ensure_dirs

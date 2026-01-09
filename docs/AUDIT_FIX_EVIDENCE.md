@@ -39,3 +39,25 @@ EnvironmentFiles=/etc/ikoma/runner.env (ignore_errors=no)
 -rw-r----- 1 root ikoma 115 Jan  9 04:43 /etc/ikoma/runner.env
 # IKOMA MCP Runner environment
 ```
+## Checkpoint 3: Git Dubious Ownership
+```bash
+On branch fix/infra-production-ready
+Your branch is up to date with 'origin/fix/infra-production-ready'.
+```
+## Checkpoint 4: Portabilité
+```bash
+BASE_DIR="/opt/ikoma"
+ETC_DIR="/etc/ikoma"
+```
+## Checkpoint 5: Re-Certification
+```bash
+active
+EnvironmentFiles=/etc/ikoma/runner.env (ignore_errors=no)
+# IKOMA MCP Runner environment
+On branch fix/infra-production-ready
+```
+## Checkpoint 5: Re-Certification (Suite)
+```bash
+{"status": "ok", "service": "gateway", "version": "0.1.0"}
+```
+### VERDICT FINAL: CERTIFICATION IKOMA MCP 2.0: OK

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
+from pathlib import Path
 from typing import Callable, Protocol
 
 from ..core.orders.order import Order
@@ -125,6 +127,80 @@ class DefaultRuntimeApiProvider:
         )
         request = GatewayRequest(order=None, context=context, metadata={})
         return build_gateway_report(request=request, created_at=timestamp)
+
+
+class FileBasedRuntimeApiProvider(DefaultRuntimeApiProvider):
+    """Provider reading state from /var/lib/ikoma files."""
+
+    def __init__(
+        self,
+        lib_dir: str | Path = "/var/lib/ikoma",
+        now: Callable[[], datetime] | None = None,
+    ) -> None:
+        super().__init__(now=now)
+        self._lib_dir = Path(lib_dir)
+        self._runner_cycle_file = self._lib_dir / "runner_last_cycle_id"
+
+    def get_runtime_status(self) -> RuntimeReport:
+        report = super().get_runtime_status()
+        cycle_id = self._read_cycle_id()
+        if cycle_id > 0:
+            timestamp = self._now()
+            clock = RuntimeClock(tick=cycle_id, instant=cycle_id, cycle=cycle_id)
+            cycle = RuntimeCycle(clock=clock, opened_at=timestamp)
+            context = RuntimeContext(
+                state=RuntimeState.RUNNING,
+                cycle=cycle,
+                facts=report.context.facts,
+                evidence=report.context.evidence,
+                traces=report.context.traces,
+            )
+            return build_runtime_report(
+                context=context,
+                preflight_reports=report.preflight_reports,
+                health_reports=report.health_reports,
+                expression=report.expression,
+                traces=report.traces,
+                created_at=timestamp,
+            )
+        return report
+
+    def get_runner_cycle(self) -> RunnerRuntimeReport:
+        report = super().get_runner_cycle()
+        cycle_id = self._read_cycle_id()
+        if cycle_id > 0:
+            timestamp = self._now()
+            clock = RuntimeClock(tick=cycle_id, instant=cycle_id, cycle=cycle_id)
+            cycle = RuntimeCycle(clock=clock, opened_at=timestamp)
+            context = RuntimeContext(
+                state=RuntimeState.RUNNING,
+                cycle=cycle,
+                facts=report.context.facts,
+                evidence=report.context.evidence,
+                traces=report.context.traces,
+            )
+            decision = RunnerDecision(
+                summary=f"cycle_id={cycle_id}",
+                reasons=report.decision.reasons,
+            )
+            return RunnerRuntimeReport(
+                context=context,
+                decision=decision,
+                expression=report.expression,
+                traces=report.traces,
+                preflight_reports=report.preflight_reports,
+                health_reports=report.health_reports,
+                created_at=timestamp,
+            )
+        return report
+
+    def _read_cycle_id(self) -> int:
+        if not self._runner_cycle_file.exists():
+            return 0
+        try:
+            return int(self._runner_cycle_file.read_text(encoding="utf-8").strip() or 0)
+        except (ValueError, OSError):
+            return 0
 
 
 def _build_default_cycle(timestamp: datetime) -> RuntimeCycle:

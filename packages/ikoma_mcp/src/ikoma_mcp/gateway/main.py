@@ -8,6 +8,7 @@ import signal
 from http.server import HTTPServer
 
 from ..runtime_api.http import create_runtime_api_server
+from ..runtime_api.provider import FileBasedRuntimeApiProvider
 
 
 DEFAULT_HOST = "127.0.0.1"
@@ -19,7 +20,8 @@ def main() -> None:
     host = os.getenv("IKOMA_GATEWAY_HOST", DEFAULT_HOST)
     port = int(os.getenv("IKOMA_GATEWAY_PORT", str(DEFAULT_PORT)))
 
-    server = create_runtime_api_server(host, port)
+    provider = FileBasedRuntimeApiProvider()
+    server = create_runtime_api_server(host, port, provider=provider)
     logging.info("Gateway API listening on http://%s:%s", host, port)
 
     def _handle_stop(signum: int, frame: object) -> None:

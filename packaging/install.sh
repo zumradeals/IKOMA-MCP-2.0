@@ -82,6 +82,8 @@ install_code() {
   fi
 
   chown -R "${IKOMA_USER}:${IKOMA_GROUP}" "${CODE_DIR}"
+  # Ensure git ownership is trusted for the service user
+  sudo -u "${IKOMA_USER}" git config --global --add safe.directory "${CODE_DIR}"
 }
 
 install_venv() {
@@ -100,10 +102,12 @@ install_templates() {
   for template in runner deployer gateway; do
     local env_file="${ETC_DIR}/${template}.env"
     if [[ ! -f "${env_file}" ]]; then
-      install -m 600 -o root -g root "${SCRIPT_DIR}/templates/${template}.env.example" "${env_file}"
+      install -m 640 -o root -g "${IKOMA_GROUP}" "${SCRIPT_DIR}/templates/${template}.env.example" "${env_file}"
       log "Created ${env_file}"
     else
       log "Env file exists: ${env_file}"
+      chown root:"${IKOMA_GROUP}" "${env_file}"
+      chmod 640 "${env_file}"
     fi
   done
 }
